@@ -2,10 +2,12 @@ const axios = require('axios');
 // const cheerio = require('cheerio');
 
 // 目标 URL
-const url = 'https://api.juejin.cn/recommend_api/v1/article/recommend_all_feed?aid=2608&uuid=7194626781654451745&spider=0';
+const urlMap = {
+  juejinzuixinxiaoxi: `https://api.juejin.cn/recommend_api/v1/article/recommend_all_feed?aid=2608&uuid=7194626781654451745&spider=0`
+}
 const articles = []
 // 发送 HTTP 请求并获取页面内容
-axios.post(url, {
+axios.post(urlMap.juejinzuixinxiaoxi, {
   client_type: 2608,
   cursor: "0",
   id_type: 2,
@@ -26,8 +28,6 @@ axios.post(url, {
         })
       }
     })
-    console.log(articles)
-    console.log(articles.length)
   })
   .catch(error => {
     console.error(`Error: ${error}`);
