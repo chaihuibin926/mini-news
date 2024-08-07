@@ -38,8 +38,27 @@ const apiMap: Record<string, ApiParams> = {
         }
       }).filter(it => it)
     },
-    parseRes: res => {
-      return res.data.data
+    parseRes: res => res.data.data
+  },
+  'juejin-rank': {
+    url: 'https://api.juejin.cn/content_api/v1/content/article_rank',
+    method: 'GET',
+    params: {
+      category_id: 1,
+      type: 'hot',
+      aid: 2608,
+      uuid: '7368466501496079922',
+      spider: 0,
+    },
+    parseRes: (res) => res.data.data,
+    parseData: (data) => {
+      return data.map(it => {
+        return {
+          id: it.content.content_id,
+          title: it.content.title,
+          link: `https://juejin.cn/post/${it.content.content_id}`
+        }
+      })
     }
   },
   "weibo-hot": {
@@ -66,18 +85,6 @@ const apiMap: Record<string, ApiParams> = {
   }
 }
 
-const tagList = [
-  {
-    title: '掘金',
-    children: [
-      {
-        title: '最新',
-        name: 'juejin-latest'
-      }
-    ]
-  }
-]
-
 function getData(apiName: keyof typeof apiMap) {
   const {method, data, params, url} = apiMap[apiName]
   return axios({
@@ -89,11 +96,6 @@ function getData(apiName: keyof typeof apiMap) {
 }
 
 http.createServer((req, res) => {
-  if (req.url === '/tags') {
-    res.writeHead(200)
-    res.end(JSON.stringify(tagList))
-    return 
-  }
   const requestApiName = req.url?.split('/').slice(-1)[0];
   if (requestApiName && (requestApiName in apiMap)) {
     getData(requestApiName)
