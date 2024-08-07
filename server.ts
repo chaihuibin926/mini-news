@@ -41,6 +41,28 @@ const apiMap: Record<string, ApiParams> = {
     parseRes: res => {
       return res.data.data
     }
+  },
+  "weibo-hot": {
+    url: "https://m.weibo.cn/api/container/getIndex",
+    method: 'GET',
+    params: {
+      containerid: 102803,
+      openApp: 0,
+      since_id: 1, // 貌似是页码
+    },
+    parseRes: res => {
+      return res.data.data
+    },
+    parseData: data => {
+      return data.cards.map(card => {
+        return {
+          id: card.mblog.id,
+          title: card.mblog.page_info?.title,
+          content: card.mblog.page_info?.text,
+          link: 'https://m.weibo.cn/detail/' + card.mblog.id
+        }
+      })
+    }
   }
 }
 

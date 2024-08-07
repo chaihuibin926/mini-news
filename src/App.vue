@@ -1,6 +1,6 @@
 <script setup lang="ts">
   import axios from 'axios'
-  import { ref } from 'vue';
+  import { onMounted, ref } from 'vue';
 
   let posts = ref<{
     id: string;
@@ -8,13 +8,15 @@
     link: string;
   }[]>([])
 
-  axios
-    .get('http://127.0.0.1:8020/juejin-latest', {
-      responseType: 'json'
-    })
-    .then(res => {
-      posts.value = res.data
-    })
+  onMounted(() => {
+    axios
+      .get('http://127.0.0.1:8020/weibo-hot', {
+        responseType: 'json'
+      })
+      .then(res => {
+        posts.value = res.data
+      })
+  })
 </script>
 
 <template>
