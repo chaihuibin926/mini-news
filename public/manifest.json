@@ -3,12 +3,25 @@
   "name": "mini-news",
   "description": "mini-news",
   "version": "1.0",
+  "icons": {
+    "16": "icon.png",
+    "24": "icon.png",
+    "32": "icon.png",
+    "48": "icon.png",
+    "96": "icon.png",
+    "128": "icon.png",
+    "176": "icon.png"
+  },
   "action": {
     "default_popup": "index.html",
     "default_icon": {
       "16": "icon.png",
       "24": "icon.png",
-      "32": "icon.png" 
+      "32": "icon.png",
+      "48": "icon.png",
+      "96": "icon.png",
+      "128": "icon.png",
+      "176": "icon.png"
     }
   },
   "permissions": [

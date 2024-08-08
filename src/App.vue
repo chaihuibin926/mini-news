@@ -55,7 +55,9 @@
     brief_content?: string
   }[]>([])
 
-  const categoryList = ref<{title: string; name: string}[]>([])
+  const activeSite = ref<typeof siteList.value[number]>(siteList.value[0])
+  const activeCategory = ref(siteList.value[0].children[0])
+  // const categoryList = ref<{title: string; name: string}[]>(siteList.value[0].children)
   // const sortList = ref<{title: string; value: string}[]>([
   //   {
   //     title: '最新',
@@ -69,7 +71,7 @@
 
   function getData(name: string) {
     axios
-      .get('http://127.0.0.1:8020/' + name, {
+      .get('http://127.0.0.1:9260/' + name, {
         responseType: 'json'
       })
       .then(res => {
@@ -85,14 +87,18 @@
         //@ts-ignore
         const target = e.target.closest('.web-icon-box')
         const name = target.dataset.title
-        const categorys = siteList.value.find(it => it.title === name)!.children
-        categoryList.value = categorys
+        const site = siteList.value.find(it => it.title === name)!
+        activeSite.value = site
+        // const categorys = site.children
+        // categoryList.value = categorys
       }
       //@ts-ignore
       if (e.target && e.target.closest('.category')) {
         //@ts-ignore
         const target = e.target.closest('.category')
         const name = target.dataset.name
+        const category = activeSite.value.children.find(it => it.name === name)!
+        activeCategory.value = category
         getData(name)
       }
     })
@@ -102,14 +108,14 @@
 <template>
   <header>
     <div class="dock">
-      <div class="web-icon-box" :key="site.title" :data-title="site.title" v-for="(site) in siteList">
+      <div :class="'web-icon-box ' + (activeSite.title === site.title ? 'active' : '')" :key="site.title" :data-title="site.title" v-for="(site) in siteList">
         <img class="web-icon" width="50" height="50" :src="site.icon" :alt="site.title" />
       </div>
     </div>
   </header>
 
   <ul class="category-list">
-    <li class="category" :key="item.name" :data-name="item.name" v-for="(item) in categoryList">{{ item.title }}</li>
+    <li :class="'category ' + (activeCategory.name === item.name ? 'active' : '')" :key="item.name" :data-name="item.name" v-for="(item) in activeSite.children">{{ item.title }}</li>
   </ul>
 
   <!-- <ul class="sroter">
@@ -149,7 +155,9 @@
     border-radius: 15%;
     transition: transform 0.3s ease;
   }
-
+  .web-icon-box.active .web-icon {
+    
+  }
   .web-icon-box:hover .web-icon {
     transform: scale(1.1);
   }
@@ -162,7 +170,11 @@
     background-color: #f9f9f9;
     border-radius: 10px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
+    overflow-x: auto;
+
+    /* 美化滚动条 */
+    scrollbar-width: thin; /* Firefox */
+    scrollbar-color: #b0b0b0 #f9f9f9; /* 滚动条颜色和背景 */
   }
 
   .category {
@@ -172,6 +184,7 @@
     cursor: pointer;
     transition: background-color 0.3s, color 0.3s, box-shadow 0.3s;
     position: relative;
+    white-space: nowrap;
   }
 
   .category::after {
@@ -200,6 +213,25 @@
     opacity: 1;
   }
 
+  /* WebKit 浏览器中的滚动条样式 */
+  .category-list::-webkit-scrollbar {
+    height: 8px; /* 滚动条的高度 */
+  }
+
+  .category-list::-webkit-scrollbar-track {
+    background: #f9f9f9; /* 滚动条轨道的背景颜色 */
+    border-radius: 10px; /* 滚动条轨道的圆角 */
+  }
+
+  .category-list::-webkit-scrollbar-thumb {
+    background: #b0b0b0; /* 滚动条的颜色 */
+    border-radius: 10px; /* 滚动条的圆角 */
+  }
+
+  .category-list::-webkit-scrollbar-thumb:hover {
+    background: #8c8c8c; /* 滚动条在悬停时的颜色 */
+  }
+
   .article-list {
     list-style: none;
     padding: 0;
@@ -223,6 +255,7 @@
     text-decoration: none;
     color: #333;
     font-weight: bold;
+    font-size: 16px;
     transition: color 0.2s;
   }
 

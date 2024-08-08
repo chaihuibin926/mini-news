@@ -231,8 +231,19 @@ http.createServer((req, res) => {
         res.writeHead(200, 'ok', {"Access-Control-Allow-Origin": "*",})
         res.end(JSON.stringify(data))
       })
+      .catch((err) => {
+        console.error(err)
+        res.writeHead(500, {"Access-Control-Allow-Origin": "*",})
+        res.end(JSON.stringify({msg: 'network error'}))
+      })
   } else {
     res.writeHead(404)
     res.end()
   }
-}).listen(8020)
+}).listen(9260, () => {
+  // ANSI 24-bit RGB 颜色码 
+  // 祖母绿
+  const EMERALD_GREEN = '\x1b[38;2;80;200;120m';
+  const RESET = '\x1b[0m';
+  console.log(`${EMERALD_GREEN}mini-news server listen to the port 9260${RESET}`)
+})
