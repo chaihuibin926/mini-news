@@ -53,6 +53,7 @@
     title: string;
     link: string;
     brief_content?: string
+    content: string;
   }[]>([])
 
   const activeSite = ref<typeof siteList.value[number]>(siteList.value[0])
@@ -125,9 +126,10 @@
   <main>
     <ul class="article-list">
       <li v-bind:key="item.id" v-for="(item, index) in posts" class="article-item">
-        <a target="_blank" :href="item.link" class="article-link">
+        <a v-show="!!item.title" target="_blank" :href="item.link" class="article-link">
           {{ index+1 }} - {{ item.title }}
         </a>
+        <a v-show="!!item.content" v-html="item.content" target="_blank" :href="item.link" class="article-link"></a>
         <p v-show="!!item.brief_content" class="brief-content">{{ item.brief_content }}</p>
       </li>
     </ul>
@@ -156,7 +158,9 @@
     transition: transform 0.3s ease;
   }
   .web-icon-box.active .web-icon {
-    
+    transform: scale(1.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    border: 2px solid #007BFF; /* 增加一个蓝色边框 */
   }
   .web-icon-box:hover .web-icon {
     transform: scale(1.1);
@@ -212,6 +216,16 @@
   .category:hover::after {
     opacity: 1;
   }
+
+  /* 为 .category 添加选中样式 */
+  .category.active {
+    background: #007BFF;
+    color: #ffffff;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5); /* 添加文本阴影 */
+  }
+  
+
+
 
   /* WebKit 浏览器中的滚动条样式 */
   .category-list::-webkit-scrollbar {

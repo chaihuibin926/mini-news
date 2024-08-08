@@ -193,7 +193,7 @@ const apiMap: Record<string, ApiParams> = {
     params: {
       containerid: 102803,
       openApp: 0,
-      since_id: 1, // 貌似是页码
+      // since_id: 1, // 貌似是页码
     },
     parseRes: res => {
       return res.data.data
@@ -202,8 +202,8 @@ const apiMap: Record<string, ApiParams> = {
       return data.cards.map(card => {
         return {
           id: card.mblog.id,
-          title: card.mblog.page_info?.title,
-          content: card.mblog.page_info?.text,
+          // title: card.mblog.text,
+          content: card.mblog.text,
           link: 'https://m.weibo.cn/detail/' + card.mblog.id
         }
       })
