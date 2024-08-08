@@ -10,13 +10,29 @@
       icon: juejin_icon,
       children: [
         {
-          title: '最新',
-          name: 'juejin-latest'
+          title: '综合',
+          name: 'juejin-complex',
         },
         {
           title: '排行榜',
           name: 'juejin-rank',
-        }
+        },
+        {
+          title: '前端',
+          name: 'juejin-front-end',
+        },
+        {
+          title: '后端',
+          name: 'juejin-back-end',
+        },
+        {
+          title: '人工智能',
+          name: 'juejin-ai',
+        },
+        {
+          title: '阅读',
+          name: 'juejin-read',
+        },
       ]
     },
     {
@@ -36,9 +52,20 @@
     id: string;
     title: string;
     link: string;
+    brief_content?: string
   }[]>([])
 
   const categoryList = ref<{title: string; name: string}[]>([])
+  // const sortList = ref<{title: string; value: string}[]>([
+  //   {
+  //     title: '最新',
+  //     value: 'latest'
+  //   },
+  //   {
+  //     title: '推荐',
+  //     value: 'recommend'
+  //   }
+  // ])
 
   function getData(name: string) {
     axios
@@ -52,7 +79,6 @@
 
   onMounted(() => {
     
-
     document.addEventListener('click', e => {
       //@ts-ignore
       if (e.target && e.target.closest('.web-icon-box')) {
@@ -86,12 +112,17 @@
     <li class="category" :key="item.name" :data-name="item.name" v-for="(item) in categoryList">{{ item.title }}</li>
   </ul>
 
+  <!-- <ul class="sroter">
+    <li :key="item.value" v-for="(item) in sortList">{{ item.title }}</li>
+  </ul> -->
+
   <main>
     <ul class="article-list">
       <li v-bind:key="item.id" v-for="(item, index) in posts" class="article-item">
         <a target="_blank" :href="item.link" class="article-link">
           {{ index+1 }} - {{ item.title }}
         </a>
+        <p v-show="!!item.brief_content" class="brief-content">{{ item.brief_content }}</p>
       </li>
     </ul>
   </main>
@@ -128,17 +159,31 @@
     list-style: none;
     padding: 0;
     margin: 0 0 20px 0;
-    background-color: #f1f1f1;
+    background-color: #f9f9f9;
     border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     overflow: hidden;
   }
 
   .category {
     padding: 10px 20px;
-    background-color: #ffffff;
+    background: linear-gradient(to bottom, #ffffff, #f1f1f1);
     border-right: 1px solid #ddd;
     cursor: pointer;
-    transition: background-color 0.3s, color 0.3s;
+    transition: background-color 0.3s, color 0.3s, box-shadow 0.3s;
+    position: relative;
+  }
+
+  .category::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 2px;
+    background: linear-gradient(to right, transparent, rgba(0, 0, 0, 0.1), transparent);
+    transition: opacity 0.3s;
+    opacity: 0;
   }
 
   .category:last-child {
@@ -148,6 +193,11 @@
   .category:hover {
     background-color: #e0e0e0;
     color: #007BFF;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .category:hover::after {
+    opacity: 1;
   }
 
   .article-list {
@@ -178,5 +228,18 @@
 
   .article-link:hover {
     color: #007BFF;
+  }
+
+  .brief-content {
+    color: #666;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  main {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   }
 </style>

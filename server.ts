@@ -11,16 +11,25 @@ type ApiParams = {
   parseRes: (res: AxiosResponse<any, any>) => any[];
 }
 
+const sorts = {
+  'juejin': {
+    'recommend': 200,
+    'latest': 300,
+  }
+}
+
 const apiMap: Record<string, ApiParams> = {
-  'juejin-latest': {
+  'juejin-complex': {
     url: `https://api.juejin.cn/recommend_api/v1/article/recommend_all_feed`,
     method: "POST",
-    data: {
-      client_type: 2608,
-      cursor: "0",
-      id_type: 2,
-      limit: 20,
-      sort_type: 300,
+    data: (sort: string) => {
+      return {
+        client_type: 2608,
+        cursor: "0",
+        id_type: 2,
+        limit: 20,
+        sort_type: sorts.juejin[sort],
+      }
     },
     params: {
       aid: 2608,
@@ -33,7 +42,8 @@ const apiMap: Record<string, ApiParams> = {
           return {
             id: it.item_info.article_id,
             title: it.item_info.article_info?.title,
-            link: `https://juejin.cn/post/${it.item_info.article_id}`
+            link: `https://juejin.cn/post/${it.item_info.article_id}`,
+            brief_content: it.item_info.article_info?.brief_content
           }
         }
       }).filter(it => it)
@@ -57,6 +67,122 @@ const apiMap: Record<string, ApiParams> = {
           id: it.content.content_id,
           title: it.content.title,
           link: `https://juejin.cn/post/${it.content.content_id}`
+        }
+      })
+    }
+  },
+  'juejin-front-end': {
+    url: 'https://api.juejin.cn/recommend_api/v1/article/recommend_cate_feed',
+    method: 'POST',
+    params: {
+      aid: 2608,
+      uuid: '7194626781654451745',
+      spider: 0,
+    },
+    data: (sort: string) => {
+      return {
+        cate_id: "6809637767543259144",
+        cursor: "0",
+        id_type: 2,
+        limit: 20,
+        sort_type: sorts.juejin[sort],
+      }
+    },
+    parseRes: res => res.data.data,
+    parseData: (data) => {
+      return data.map(it => {
+        return {
+          id: it.article_id,
+          title: it.article_info.title,
+          link: `https://juejin.cn/post/${it.article_id}`,
+          brief_content: it.article_info.brief_content
+        }
+      })
+    }
+  },
+  'juejin-back-end': {
+    url: 'https://api.juejin.cn/recommend_api/v1/article/recommend_cate_feed',
+    method: 'POST',
+    params: {
+      aid: 2608,
+      uuid: '7194626781654451745',
+      spider: 0,
+    },
+    data: (sort: string) => {
+      return {
+        cate_id: "6809637769959178254",
+        cursor: "0",
+        id_type: 2,
+        limit: 20,
+        sort_type: sorts.juejin[sort],
+      }
+    },
+    parseRes: res => res.data.data,
+    parseData: (data) => {
+      return data.map(it => {
+        return {
+          id: it.article_id,
+          title: it.article_info.title,
+          link: `https://juejin.cn/post/${it.article_id}`,
+          brief_content: it.article_info.brief_content
+        }
+      })
+    }
+  },
+  'juejin-ai': {
+    url: 'https://api.juejin.cn/recommend_api/v1/article/recommend_cate_feed',
+    method: 'POST',
+    params: {
+      aid: 2608,
+      uuid: '7194626781654451745',
+      spider: 0,
+    },
+    data: (sort: string) => {
+      return {
+        cate_id: "6809637773935378440",
+        cursor: "0",
+        id_type: 2,
+        limit: 20,
+        sort_type: sorts.juejin[sort],
+      }
+    },
+    parseRes: res => res.data.data,
+    parseData: (data) => {
+      return data.map(it => {
+        return {
+          id: it.article_id,
+          title: it.article_info.title,
+          link: `https://juejin.cn/post/${it.article_id}`,
+          brief_content: it.article_info.brief_content
+        }
+      })
+    }
+  },
+  'juejin-read': {
+    url: 'https://api.juejin.cn/recommend_api/v1/article/recommend_cate_feed',
+    method: 'POST',
+    params: {
+      aid: 2608,
+      uuid: '7194626781654451745',
+      spider: 0,
+    },
+    data: (sort: string) => {
+      return {
+        cate_id: "6809637772874219534",
+        cursor: "0",
+        id_type: 2,
+        limit: 20,
+        sort_type: sorts.juejin[sort],
+      }
+    },
+    parseRes: res => res.data.data,
+    parseData: (data) => {
+      return data.map(it => {
+        return {
+          id: it.article_id,
+          title: it.article_info.title,
+          link: `https://juejin.cn/post/${it.article_id}`,
+          brief_content: it.article_info.brief_content
         }
       })
     }
@@ -89,7 +215,7 @@ function getData(apiName: keyof typeof apiMap) {
   const {method, data, params, url} = apiMap[apiName]
   return axios({
     method,
-    data,
+    data: typeof data === 'function' ? data('latest') : data,
     params,
     url,
   })
