@@ -3,6 +3,7 @@
   import { onMounted, ref } from 'vue';
   import juejin_icon from './icon/juejin.png'
   import xinlangweibo_icon from './icon/xinlangweibo.png'
+  import woshipm_icon from './icon/woshipm.jpg'
 
   const siteList = ref([
     {
@@ -36,6 +37,20 @@
       ]
     },
     {
+      title: '人人都是产品经理',
+      icon: woshipm_icon,
+      children: [
+        {
+          title: '推荐',
+          name: 'woshipm-recommend',
+        },
+        {
+          title: '年度产品榜',
+          name: 'woshipm-product-rank',
+        },
+      ]
+    },
+    {
       title: '微博',
       icon: xinlangweibo_icon,
       children: [
@@ -44,7 +59,7 @@
           name: 'weibo-hot',
         }
       ]
-    }
+    },
   ])
 
 
@@ -81,7 +96,7 @@
   }
 
   onMounted(() => {
-    
+    getData(activeCategory.value.name)
     document.addEventListener('click', e => {
       //@ts-ignore
       if (e.target && e.target.closest('.web-icon-box')) {
@@ -90,8 +105,6 @@
         const name = target.dataset.title
         const site = siteList.value.find(it => it.title === name)!
         activeSite.value = site
-        // const categorys = site.children
-        // categoryList.value = categorys
       }
       //@ts-ignore
       if (e.target && e.target.closest('.category')) {
@@ -129,7 +142,7 @@
         <a v-show="!!item.title" target="_blank" :href="item.link" class="article-link">
           {{ index+1 }} - {{ item.title }}
         </a>
-        <a v-show="!!item.content" v-html="item.content" target="_blank" :href="item.link" class="article-link"></a>
+        <a v-show="!!item.content" v-html="item.content" target="_blank" :href="!item.title ? item.link : undefined" class="article-link"></a>
         <p v-show="!!item.brief_content" class="brief-content">{{ item.brief_content }}</p>
       </li>
     </ul>

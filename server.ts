@@ -1,6 +1,6 @@
 import axios, { type AxiosResponse } from 'axios'
 import http from 'http'
-// const cheerio = require('cheerio');
+import cheerio from 'cheerio'
 
 type ApiParams = {
   url: string;
@@ -208,6 +208,65 @@ const apiMap: Record<string, ApiParams> = {
         }
       })
     }
+  },
+  "woshipm-recommend": {
+    method: 'GET',
+    url: 'https://www.woshipm.com/',
+    parseRes: res => res.data,
+    parseData: html => {
+      const $ = cheerio.load(html)
+      const articles = $('.js-postlist article')
+      const titles = $('.js-postlist article .content .post-title a')
+      const des = $('.js-postlist article .content .des')
+
+      const data = []
+      Object.keys(articles).forEach(key => {
+        if (!Number.isNaN(Number(key))) {
+          const article = articles[key]
+          data.push(
+            {
+              id: article.attribs['data-id'],
+              title: titles[key].attribs.title,
+              brief_content: des[key].children[0].data,
+              link: `https://www.woshipm.com/class/${article.attribs['data-id']}.html`,
+            }
+          )
+        }
+      })
+      return data
+    }
+  },
+  "woshipm-product-rank": {
+    url: 'https://zt.woshipm.com/author/2023/pmResult.html',
+    method: 'GET',
+    parseRes: res => res.data,
+    parseData: html => {
+      const $ = cheerio.load(html)
+      // const productImgSrcs = $('.product--rankList .product--rankItem .product--rankItem__left img')
+      const productNames = $('.product--rankList .product--rankItem .name')
+      const productBriefContents = $('.product--rankList .product--rankItem ul')
+      const productBriefLinis = $('.product--rankList .product--rankItem a')
+      const data = []
+      Object.keys(productNames).forEach(key => {
+        if (!Number.isNaN(Number(key))) {
+          const productName = productNames[key].children[0].data
+          const liList = productBriefContents[key].children.filter(it => it.type === 'tag').map(it => it.children[0].data)
+          data.push({
+            id: productName,
+            title: productName,
+            link: productBriefLinis[key].attribs.href,
+            content: `
+              <ul>
+                ${
+                  liList.map(it => `<li>${it}</li>`).join('')
+                }
+              </ul>
+            `
+          })
+        }
+      })
+      return data
+    }
   }
 }
 
@@ -220,6 +279,11 @@ function getData(apiName: keyof typeof apiMap) {
     url,
   })
 }
+
+// getData('woshipm-product-rank')
+// .then(apiMap['woshipm-product-rank'].parseRes)
+// .then(apiMap['woshipm-product-rank'].parseData)
+
 
 http.createServer((req, res) => {
   const requestApiName = req.url?.split('/').slice(-1)[0];
@@ -234,7 +298,8 @@ http.createServer((req, res) => {
       .catch((err) => {
         console.error(err)
         res.writeHead(500, {"Access-Control-Allow-Origin": "*",})
-        res.end(JSON.stringify({msg: 'network error'}))
+        const newLocal = 'network error';
+        res.end(JSON.stringify({msg: newLocal}))
       })
   } else {
     res.writeHead(404)
