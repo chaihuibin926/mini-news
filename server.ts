@@ -1,6 +1,8 @@
 import axios, { type AxiosResponse } from 'axios'
 import http from 'http'
 import cheerio from 'cheerio'
+import fs from 'fs'
+import path from 'path'
 
 type ApiParams = {
   url: string;
@@ -284,8 +286,95 @@ function getData(apiName: keyof typeof apiMap) {
 // .then(apiMap['woshipm-product-rank'].parseRes)
 // .then(apiMap['woshipm-product-rank'].parseData)
 
+const siteList = [
+
+  {
+    title: '人人都是产品经理',
+    icon: '/icon/woshipm.jpg',
+    children: [
+      {
+        title: '推荐',
+        name: 'woshipm-recommend',
+      },
+      {
+        title: '年度产品榜',
+        name: 'woshipm-product-rank',
+      },
+    ]
+  },
+  {
+    title: '掘金',
+    icon: '/icon/juejin.png',
+    children: [
+      {
+        title: '综合',
+        name: 'juejin-complex',
+      },
+      {
+        title: '排行榜',
+        name: 'juejin-rank',
+      },
+      {
+        title: '前端',
+        name: 'juejin-front-end',
+      },
+      {
+        title: '后端',
+        name: 'juejin-back-end',
+      },
+      {
+        title: '人工智能',
+        name: 'juejin-ai',
+      },
+      {
+        title: '阅读',
+        name: 'juejin-read',
+      },
+    ]
+  },
+  {
+    title: '微博',
+    icon: '/icon/xinlangweibo.png',
+    children: [
+      {
+        title: '热门',
+        name: 'weibo-hot',
+      }
+    ]
+  },
+]
 
 http.createServer((req, res) => {
+  let ip;
+
+  // 通过 `x-forwarded-for` 头部获取真实 IP（用于代理服务器）
+  if (req.headers['x-forwarded-for']) {
+    ip = req.headers['x-forwarded-for'].split(',')[0].trim();
+  } else {
+    // 直接从连接获取 IP 地址
+    ip = req.connection.remoteAddress || req.socket.remoteAddress;
+  }
+  console.log(ip, req.url)
+  if (req.url?.startsWith('/icon')) {
+    const iconPath = path.join(__dirname, req.url); // 假设你要返回一个名为 `icon.png` 的图标
+
+    fs.readFile(iconPath, (err, data) => {
+      if (err) {
+        res.writeHead(404, { 'Content-Type': 'text/plain' });
+        res.end('Icon not found');
+      } else {
+        res.writeHead(200, { 'Content-Type': 'image/png' });
+        res.end(data);
+      }
+    });
+    return
+  }
+  if (req.url === '/connect') {
+    res.writeHead(200, {"Access-Control-Allow-Origin": "*",})
+    res.end(JSON.stringify(siteList))
+    return
+  }
+
   const requestApiName = req.url?.split('/').slice(-1)[0];
   if (requestApiName && (requestApiName in apiMap)) {
     getData(requestApiName)

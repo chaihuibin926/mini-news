@@ -1,67 +1,16 @@
 <script setup lang="ts">
   import axios from 'axios'
   import { onMounted, ref } from 'vue';
-  import juejin_icon from './icon/juejin.png'
-  import xinlangweibo_icon from './icon/xinlangweibo.png'
-  import woshipm_icon from './icon/woshipm.jpg'
+  import IpInput from './components/IpInput.vue'
 
-  const siteList = ref([
-    {
-      title: '掘金',
-      icon: juejin_icon,
-      children: [
-        {
-          title: '综合',
-          name: 'juejin-complex',
-        },
-        {
-          title: '排行榜',
-          name: 'juejin-rank',
-        },
-        {
-          title: '前端',
-          name: 'juejin-front-end',
-        },
-        {
-          title: '后端',
-          name: 'juejin-back-end',
-        },
-        {
-          title: '人工智能',
-          name: 'juejin-ai',
-        },
-        {
-          title: '阅读',
-          name: 'juejin-read',
-        },
-      ]
-    },
-    {
-      title: '人人都是产品经理',
-      icon: woshipm_icon,
-      children: [
-        {
-          title: '推荐',
-          name: 'woshipm-recommend',
-        },
-        {
-          title: '年度产品榜',
-          name: 'woshipm-product-rank',
-        },
-      ]
-    },
-    {
-      title: '微博',
-      icon: xinlangweibo_icon,
-      children: [
-        {
-          title: '热门',
-          name: 'weibo-hot',
-        }
-      ]
-    },
-  ])
+  type Site = {
+    title: string;
+    icon: string;
+    children: {title: string; name: string}[]
+  }
 
+  const connected = ref(false)
+  const siteList = ref<Site[]>([])
 
   const posts = ref<{
     id: string;
@@ -71,19 +20,8 @@
     content: string;
   }[]>([])
 
-  const activeSite = ref<typeof siteList.value[number]>(siteList.value[0])
-  const activeCategory = ref(siteList.value[0].children[0])
-  // const categoryList = ref<{title: string; name: string}[]>(siteList.value[0].children)
-  // const sortList = ref<{title: string; value: string}[]>([
-  //   {
-  //     title: '最新',
-  //     value: 'latest'
-  //   },
-  //   {
-  //     title: '推荐',
-  //     value: 'recommend'
-  //   }
-  // ])
+  const activeSite = ref<Site>()
+  const activeCategory = ref()
 
   function getData(name: string) {
     axios
@@ -96,7 +34,6 @@
   }
 
   onMounted(() => {
-    getData(activeCategory.value.name)
     document.addEventListener('click', e => {
       //@ts-ignore
       if (e.target && e.target.closest('.web-icon-box')) {
@@ -111,32 +48,70 @@
         //@ts-ignore
         const target = e.target.closest('.category')
         const name = target.dataset.name
-        const category = activeSite.value.children.find(it => it.name === name)!
+        const category = activeSite.value?.children.find(it => it.name === name)!
         activeCategory.value = category
         getData(name)
       }
     })
   })
+
+  function onConnection(targetIp: string, targetPort: number) {
+    axios
+      .get(`http://${targetIp}:${targetPort}/connect`, {responseType: 'json'})
+      .then(res => {
+        if (res.status === 200) {
+          const siteData = res.data.map((it: Site) => ({...it, icon: `${targetIp}:${targetPort}${it.icon}`}))
+          siteList.value = siteData
+          activeSite.value = siteData[0]
+          activeCategory.value = siteData[0].children[0]
+          connected.value = true
+          getData(siteData[0].children[0].name)
+        }
+      })
+  }
+
+  const isToolbarVisible = ref(false);
+  
+  function toggleToolbar() {
+    isToolbarVisible.value = !isToolbarVisible.value;
+  }
+
+  function disconnectServer() {
+    // 清空数据和状态
+    connected.value = false;
+    siteList.value = [];
+    activeSite.value = undefined;
+    activeCategory.value = undefined;
+  }
+
 </script>
 
 <template>
-  <header>
+  <!-- 操作栏 -->
+  <div class="toolbar" v-show="connected">
+    <button @click="toggleToolbar" class="toolbar-toggle">
+      <span v-if="isToolbarVisible">−</span>
+      <span v-else>☰</span>
+    </button>
+    <div class="toolbar-content" :class="{ show: isToolbarVisible }">
+      <button @click="disconnectServer" class="disconnect-btn">断开</button>
+    </div>
+  </div>
+
+  <IpInput v-show="!connected" :onConnection="onConnection" />
+  <header v-show="connected">
     <div class="dock">
-      <div :class="'web-icon-box ' + (activeSite.title === site.title ? 'active' : '')" :key="site.title" :data-title="site.title" v-for="(site) in siteList">
-        <img class="web-icon" width="50" height="50" :src="site.icon" :alt="site.title" />
+      <div :class="'web-icon-box ' + (activeSite?.title === site.title ? 'active' : '')" :key="site.title" :data-title="site.title" v-for="(site) in siteList">
+        <img class="web-icon" width="50" height="50" :src="`http://${site.icon}`" :alt="site.title" />
       </div>
     </div>
   </header>
 
-  <ul class="category-list">
-    <li :class="'category ' + (activeCategory.name === item.name ? 'active' : '')" :key="item.name" :data-name="item.name" v-for="(item) in activeSite.children">{{ item.title }}</li>
+  <ul v-show="connected" class="category-list">
+    <li :class="'category ' + (activeCategory?.name === item.name ? 'active' : '')" :key="item.name" :data-name="item.name" v-for="(item) in activeSite?.children ?? []">{{ item.title }}</li>
   </ul>
 
-  <!-- <ul class="sroter">
-    <li :key="item.value" v-for="(item) in sortList">{{ item.title }}</li>
-  </ul> -->
-
-  <main>
+  <main v-show="connected">
     <ul class="article-list">
       <li v-bind:key="item.id" v-for="(item, index) in posts" class="article-item">
         <a v-show="!!item.title" target="_blank" :href="item.link" class="article-link">
@@ -150,6 +125,76 @@
 </template>
 
 <style scoped>
+
+  .toolbar {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background-color: #ffffff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    padding: 5px;
+    z-index: 1000;
+    width: 60px; /* 更小的宽度 */
+    text-align: center;
+    transition: all 0.3s ease;
+  }
+
+  /* 切换按钮 */
+  .toolbar-toggle {
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    padding: 8px;
+    cursor: pointer;
+    border-radius: 50%;
+    font-size: 18px;
+    line-height: 1;
+    transition: background-color 0.3s;
+  }
+
+  /* 切换按钮悬停效果 */
+  .toolbar-toggle:hover {
+    background-color: #0056b3;
+  }
+
+  /* 内容区域 */
+  .toolbar-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 5px;
+    opacity: 0;
+    max-height: 0;
+    overflow: hidden;
+    transition: opacity 0.3s ease, max-height 0.3s ease;
+  }
+
+  /* 显示状态 */
+  .toolbar-content.show {
+    opacity: 1;
+    max-height: 50px; /* 根据内容调整 */
+  }
+
+  /* 断开连接按钮 */
+  .disconnect-btn {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 5px 8px;
+    cursor: pointer;
+    border-radius: 5px;
+    font-size: 12px; /* 更小的字体 */
+    margin-top: 5px;
+    transition: background-color 0.3s;
+  }
+
+  /* 断开连接按钮悬停效果 */
+  .disconnect-btn:hover {
+    background-color: #c82333;
+  }
+
   .dock {
     display: flex;
     align-items: center;
