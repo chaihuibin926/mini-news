@@ -1,4 +1,4 @@
 # mini-news
 A mini information browsing plugin
 
-ncc 将nodejs打包成单文件 然后再用 pkg 打包成 exe
+日常使用 方便浏览信息 收集灵感
